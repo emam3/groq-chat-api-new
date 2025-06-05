@@ -1,0 +1,56 @@
+name: Run integration tests
+
+on:
+  push:
+    branches: [ main ] # whenever a push is made to the main branch (SHOULD NOT HAPPEN)
+  pull_request:
+    branches: [ main ] # whenever a pull request is created
+
+jobs:
+  test:
+    name: Test and Lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+        cache: true
+
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+        args: --timeout=5m --out-format=colored-line-number
+
+    - name: Run tests
+      run: |
+        # Run tests with coverage
+        go test -v -race -coverprofile=coverage.txt -covermode=atomic -coverpkg=./... ./handlers/...
+        
+        # Get coverage percentage
+        COVERAGE=$(go tool cover -func=coverage.txt | grep total | awk '{print $3}' | sed 's/%//')
+        echo "Current coverage: $COVERAGE%"
+        
+        # Set minimum coverage threshold
+        MIN_COVERAGE=80
+        
+        # Check if coverage meets threshold
+        if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
+          echo "Coverage ($COVERAGE%) is below minimum threshold ($MIN_COVERAGE%)"
+          exit 1
+        else
+          echo "Coverage ($COVERAGE%) meets minimum threshold ($MIN_COVERAGE%)"
+        fi
+      env:
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+
+    - name: Upload coverage to Codecov
+      if: always()
+      uses: codecov/codecov-action@v5
+      with:
+        file: ./coverage.txt
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }} 

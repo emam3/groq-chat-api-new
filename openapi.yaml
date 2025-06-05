@@ -1,0 +1,107 @@
+openapi: 3.1.0
+info:
+  title: Groq Chat API
+  description: A WebSocket-based chat API that interfaces with Groq's LLM service
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: nouralden.emam@gmail.com
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the API
+      operationId: healthCheck
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  health:
+                    type: string
+                    example: "ok"
+        '500':
+          description: Internal server error
+
+  /ws/chat:
+    get:
+      summary: WebSocket chat endpoint
+      description: Establishes a WebSocket connection for real-time chat with the Groq LLM
+      operationId: wsChat
+      parameters:
+        - name: X-Session-ID
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Unique session identifier for the chat
+      responses:
+        '101':
+          description: WebSocket connection established
+        '400':
+          description: Bad request (missing session ID)
+        '500':
+          description: Internal server error
+      x-websocket-protocols:
+        - chat
+      x-websocket-messages:
+        request:
+          type: object
+          properties:
+            messages:
+              type: array
+              items:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    enum: [user, assistant]
+                  content:
+                    type: string
+            stream:
+              type: boolean
+              default: false
+        response:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [chat, error, status]
+            content:
+              type: array
+              items:
+                type: object
+                properties:
+                  role:
+                    type: string
+                    enum: [user, assistant]
+                  content:
+                    type: string
+            error:
+              type: string
+              description: Error message if type is 'error'
+
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: X-Session-ID
+      description: Session identifier for chat authentication
+
+security:
+  - sessionId: []
+
+tags:
+  - name: Chat
+    description: WebSocket-based chat operations
+  - name: System
+    description: System health and status operations 

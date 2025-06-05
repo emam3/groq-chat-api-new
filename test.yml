@@ -1,0 +1,28 @@
+config:
+  target: "ws://localhost:8000/ws/chat"
+  phases:
+    - duration: 10
+      arrivalRate: 50
+scenarios:
+  - engine: "ws"
+    beforeRequest: "setSessionId"
+    flow:
+      - connect:
+          headers:
+            "X-Session-ID": "{{ $processEnvironment.SESSION_ID }}"
+      - send:
+          json:
+            messages:
+              - content: "Test message"
+                role: "user"
+            stream: false
+
+plugins:
+  expect: {}
+
+processor:
+  setSessionId: |
+    function (req, ctx, ee, next) {
+      process.env.SESSION_ID = Math.floor(Math.random() * 1000000).toString();
+      return next();
+    }
