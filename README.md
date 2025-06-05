@@ -146,6 +146,30 @@ go test ./...
 
 Test coverage is automatically uploaded to [Codecov](https://codecov.io) after each test run, providing detailed insights into code coverage metrics and trends.
 
+## Stress Testing
+
+The project includes stress testing configuration using [Artillery](https://www.artillery.io/), a powerful load testing toolkit. The test configuration (`test.yml`) simulates multiple concurrent WebSocket connections to verify the system's performance under load.
+
+### Setting up Artillery
+
+1. Install Artillery globally:
+```bash
+npm install -g artillery@latest
+```
+or visit [How to install Artillery](https://www.artillery.io/docs/get-started/get-artillery) if you don't have Node installed on your machine.
+
+2. Run the stress test:
+```bash
+artillery run test.yml
+```
+
+The test configuration:
+- Simulates 50 concurrent users
+- Runs for 30 seconds
+- Tests WebSocket connections with random session IDs
+- Validates response times and connection stability
+
+
 ## CI/CD
 
 The project includes two GitHub Actions workflows:
