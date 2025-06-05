@@ -172,7 +172,6 @@ func callGroqAPI(ctx context.Context, groqReq GroqRequest) (*GroqResponse, error
 		}
 
 		groqAPIKey := os.Getenv("GROQ_API_KEY")
-		fmt.Println("groqAPIKey : ", groqAPIKey)
 		if groqAPIKey == "" {
 			return nil, fmt.Errorf("GROQ_API_KEY not set")
 		}
